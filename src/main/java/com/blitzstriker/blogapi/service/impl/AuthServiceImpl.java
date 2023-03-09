@@ -7,6 +7,7 @@ import com.blitzstriker.blogapi.payload.LoginRequest;
 import com.blitzstriker.blogapi.payload.RegisterRequest;
 import com.blitzstriker.blogapi.repository.RoleRepository;
 import com.blitzstriker.blogapi.repository.UserRepository;
+import com.blitzstriker.blogapi.security.JwtTokenProvider;
 import com.blitzstriker.blogapi.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public String register(RegisterRequest request) {
@@ -64,6 +66,6 @@ public class AuthServiceImpl implements AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return "User logged in successfully";
+        return jwtTokenProvider.generateToken(authentication);
     }
 }

@@ -19,7 +19,7 @@ public class PostController {
 
     private final PostService postService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseEntity<PostResponseDto> createPost(@Valid @RequestBody PostRequestDto postRequestDto) {
         return new ResponseEntity<>(postService.createPost(postRequestDto), HttpStatus.CREATED);

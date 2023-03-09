@@ -1,5 +1,6 @@
 package com.blitzstriker.blogapi.controller;
 
+import com.blitzstriker.blogapi.payload.JwtAuthResponse;
 import com.blitzstriker.blogapi.payload.LoginRequest;
 import com.blitzstriker.blogapi.payload.RegisterRequest;
 import com.blitzstriker.blogapi.service.AuthService;
@@ -24,7 +25,10 @@ public class AuthController {
     }
 
     @PostMapping(value = {"/login", "/signin"})
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
-        return new ResponseEntity<>(authService.login(request), HttpStatus.OK);
+    public ResponseEntity<JwtAuthResponse> login(@RequestBody LoginRequest request) {
+        String token = authService.login(request);
+        JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
+        jwtAuthResponse.setAccessToken(token);
+        return new ResponseEntity<>(jwtAuthResponse, HttpStatus.OK);
     }
 }
