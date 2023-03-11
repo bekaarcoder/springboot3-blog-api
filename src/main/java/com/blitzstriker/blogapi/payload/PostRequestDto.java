@@ -1,6 +1,7 @@
 package com.blitzstriker.blogapi.payload;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,4 +23,7 @@ public class PostRequestDto {
 
     @NotEmpty(message = "Content is required")
     private String content;
+
+    @NotNull(message = "Category is required")
+    private Long categoryId;
 }

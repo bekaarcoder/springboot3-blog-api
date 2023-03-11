@@ -27,7 +27,7 @@ public class BlogApiApplication implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         try {
             var role1 = new Role();
             role1.setId(AppConstants.ROLE_ADMIN);

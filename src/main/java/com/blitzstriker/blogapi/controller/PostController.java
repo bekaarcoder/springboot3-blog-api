@@ -35,16 +35,21 @@ public class PostController {
         return new ResponseEntity<>(postService.getPostById(id), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     @PutMapping("/{id}")
     public ResponseEntity<PostResponseDto> updatePostById(@PathVariable("id") Long id, @RequestBody PostRequestDto postRequestDto) {
         return new ResponseEntity<>(postService.updatePost(postRequestDto, id), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePostById(@PathVariable("id") Long id) {
         postService.deletePost(id);
         return new ResponseEntity<>("Post deleted successfully", HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/category/{id}")
+    public ResponseEntity<List<PostResponseDto>> getPostByCategory(@PathVariable("id") Long id) {
+        return new ResponseEntity<>(postService.getPostByCategory(id), HttpStatus.OK);
     }
 }
