@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         Set<Role> roles = new HashSet<>();
-        Role userRole = roleRepository.findByName("ROLE_ADMIN").get();
+        Role userRole = roleRepository.findByName("ROLE_USER").get();
         roles.add(userRole);
         user.setRoles(roles);
 
@@ -67,5 +68,14 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return jwtTokenProvider.generateToken(authentication);
+    }
+
+    @Override
+    public User getLoggedInUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new UsernameNotFoundException("User not found with email or username: " + username)
+        );
     }
 }

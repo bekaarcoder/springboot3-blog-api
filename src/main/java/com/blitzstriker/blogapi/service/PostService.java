@@ -1,5 +1,6 @@
 package com.blitzstriker.blogapi.service;
 
+import com.blitzstriker.blogapi.entity.User;
 import com.blitzstriker.blogapi.payload.PostRequestDto;
 import com.blitzstriker.blogapi.payload.PostResponseDto;
 
@@ -17,4 +18,6 @@ public interface PostService {
     void deletePost(Long id);
 
     List<PostResponseDto> getPostByCategory(Long id);
+
+    List<PostResponseDto> getPostByLoggedInUser();
 }

@@ -52,4 +52,10 @@ public class PostController {
     public ResponseEntity<List<PostResponseDto>> getPostByCategory(@PathVariable("id") Long id) {
         return new ResponseEntity<>(postService.getPostByCategory(id), HttpStatus.OK);
     }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/user")
+    public ResponseEntity<List<PostResponseDto>> getPostByLoggedInUser() {
+        return new ResponseEntity<>(postService.getPostByLoggedInUser(), HttpStatus.OK);
+    }
 }

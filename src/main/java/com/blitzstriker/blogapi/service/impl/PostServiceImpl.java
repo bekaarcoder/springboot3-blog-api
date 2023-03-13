@@ -2,15 +2,18 @@ package com.blitzstriker.blogapi.service.impl;
 
 import com.blitzstriker.blogapi.entity.Category;
 import com.blitzstriker.blogapi.entity.Post;
+import com.blitzstriker.blogapi.entity.User;
+import com.blitzstriker.blogapi.exception.ApiException;
 import com.blitzstriker.blogapi.exception.ResourceNotFoundException;
 import com.blitzstriker.blogapi.payload.PostRequestDto;
 import com.blitzstriker.blogapi.payload.PostResponseDto;
 import com.blitzstriker.blogapi.repository.CategoryRepository;
 import com.blitzstriker.blogapi.repository.PostRepository;
-import com.blitzstriker.blogapi.service.CategoryService;
+import com.blitzstriker.blogapi.service.AuthService;
 import com.blitzstriker.blogapi.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +25,7 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final CategoryRepository categoryRepository;
+    private final AuthService authService;
     private final ModelMapper modelMapper;
 
     @Override
@@ -34,6 +38,7 @@ public class PostServiceImpl implements PostService {
                 () -> new ResourceNotFoundException("Category", "ID", String.valueOf(postRequestDto.getCategoryId()))
         );
         post.setCategory(category);
+        post.setUser(authService.getLoggedInUser());
 
         Post newPost = postRepository.save(post);
         return modelMapper.map(newPost, PostResponseDto.class);
@@ -54,6 +59,12 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponseDto updatePost(PostRequestDto postRequestDto, Long id) {
         Post post = getPost(id);
+
+        // Check if post belong to logged-in user
+        if (!post.getUser().getEmail().equals(authService.getLoggedInUser().getEmail())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Resource not accessible.");
+        }
+
         if(postRequestDto.getCategoryId() != null) {
             Category category = categoryRepository.findById(postRequestDto.getCategoryId()).orElseThrow(
                     () -> new ResourceNotFoundException("Category", "ID", String.valueOf(postRequestDto.getCategoryId()))
@@ -64,15 +75,18 @@ public class PostServiceImpl implements PostService {
         post.setDescription(postRequestDto.getDescription() != null ? postRequestDto.getDescription() : post.getDescription());
         post.setContent(postRequestDto.getContent() != null ? postRequestDto.getContent() : post.getContent());
 
-
         Post updatedPost = postRepository.save(post);
-
         return modelMapper.map(updatedPost, PostResponseDto.class);
     }
 
     @Override
     public void deletePost(Long id) {
         Post post = getPost(id);
+
+        // Check if post belong to logged-in user
+        if (!post.getUser().getEmail().equals(authService.getLoggedInUser().getEmail())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Resource not accessible.");
+        }
 
         postRepository.delete(post);
     }
@@ -83,6 +97,12 @@ public class PostServiceImpl implements PostService {
                 () -> new ResourceNotFoundException("Category", "ID", String.valueOf(id))
         );
         List<Post> posts = postRepository.findByCategory(category);
+        return posts.stream().map(post -> modelMapper.map(post, PostResponseDto.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PostResponseDto> getPostByLoggedInUser() {
+        List<Post> posts = postRepository.findByUser(authService.getLoggedInUser());
         return posts.stream().map(post -> modelMapper.map(post, PostResponseDto.class)).collect(Collectors.toList());
     }
 

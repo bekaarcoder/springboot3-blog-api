@@ -47,4 +47,8 @@ public class Post {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", referencedColumnName = "id")
     private Category category;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 }
