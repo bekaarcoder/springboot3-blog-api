@@ -1,14 +1,17 @@
 package com.blitzstriker.blogapi.service.impl;
 
+import com.blitzstriker.blogapi.entity.ResetToken;
 import com.blitzstriker.blogapi.entity.Role;
 import com.blitzstriker.blogapi.entity.User;
 import com.blitzstriker.blogapi.exception.ApiException;
+import com.blitzstriker.blogapi.payload.ForgotPasswordRequest;
 import com.blitzstriker.blogapi.payload.LoginRequest;
 import com.blitzstriker.blogapi.payload.RegisterRequest;
 import com.blitzstriker.blogapi.repository.RoleRepository;
 import com.blitzstriker.blogapi.repository.UserRepository;
 import com.blitzstriker.blogapi.security.JwtTokenProvider;
 import com.blitzstriker.blogapi.service.AuthService;
+import com.blitzstriker.blogapi.service.ResetTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,8 +22,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ResetTokenService resetTokenService;
 
     @Override
     public String register(RegisterRequest request) {
@@ -77,5 +83,19 @@ public class AuthServiceImpl implements AuthService {
         return userRepository.findByUsernameOrEmail(username, username).orElseThrow(
                 () -> new UsernameNotFoundException("User not found with email or username: " + username)
         );
+    }
+
+    @Override
+    public ResetToken sendResetToken(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "User does not exist with the email"));
+
+        String token = UUID.randomUUID().toString();
+        ResetToken resetToken = new ResetToken();
+        resetToken.setToken(token);
+        resetToken.setCreatedAt(LocalDateTime.now());
+        resetToken.setExpiredAt(LocalDateTime.now().plusMinutes(15));
+        resetToken.setUser(user);
+        return resetTokenService.saveResetToken(resetToken);
     }
 }

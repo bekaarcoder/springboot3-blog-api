@@ -1,5 +1,7 @@
 package com.blitzstriker.blogapi.controller;
 
+import com.blitzstriker.blogapi.entity.ResetToken;
+import com.blitzstriker.blogapi.payload.ForgotPasswordRequest;
 import com.blitzstriker.blogapi.payload.JwtAuthResponse;
 import com.blitzstriker.blogapi.payload.LoginRequest;
 import com.blitzstriker.blogapi.payload.RegisterRequest;
@@ -30,5 +32,10 @@ public class AuthController {
         JwtAuthResponse jwtAuthResponse = new JwtAuthResponse();
         jwtAuthResponse.setAccessToken(token);
         return new ResponseEntity<>(jwtAuthResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/forgetpassword")
+    public ResponseEntity<ResetToken> forgetPassword(@RequestBody ForgotPasswordRequest request) {
+        return new ResponseEntity<>(authService.sendResetToken(request), HttpStatus.CREATED);
     }
 }
