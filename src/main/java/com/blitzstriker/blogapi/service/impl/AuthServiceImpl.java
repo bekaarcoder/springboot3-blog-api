@@ -6,12 +6,15 @@ import com.blitzstriker.blogapi.entity.User;
 import com.blitzstriker.blogapi.exception.ApiException;
 import com.blitzstriker.blogapi.payload.ForgotPasswordRequest;
 import com.blitzstriker.blogapi.payload.LoginRequest;
+import com.blitzstriker.blogapi.payload.PasswordRequest;
 import com.blitzstriker.blogapi.payload.RegisterRequest;
 import com.blitzstriker.blogapi.repository.RoleRepository;
 import com.blitzstriker.blogapi.repository.UserRepository;
 import com.blitzstriker.blogapi.security.JwtTokenProvider;
 import com.blitzstriker.blogapi.service.AuthService;
+import com.blitzstriker.blogapi.service.EmailService;
 import com.blitzstriker.blogapi.service.ResetTokenService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final ResetTokenService resetTokenService;
+    private final EmailService emailService;
 
     @Override
     public String register(RegisterRequest request) {
@@ -96,6 +100,32 @@ public class AuthServiceImpl implements AuthService {
         resetToken.setCreatedAt(LocalDateTime.now());
         resetToken.setExpiredAt(LocalDateTime.now().plusMinutes(15));
         resetToken.setUser(user);
+
+        // Send Email
+        String link = "http://localhost:8080/api/auth/resetpassword/confirm?token=" + token;
+        emailService.send(user.getEmail(), buildEmail(user.getUsername(), link));
+
         return resetTokenService.saveResetToken(resetToken);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(PasswordRequest passwordRequest, String token) {
+        User user = resetTokenService.confirmResetToken(token);
+        if (!passwordRequest.getPassword().equals(passwordRequest.getConfirmPassword())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Password does not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordRequest.getPassword()));
+    }
+
+    private String buildEmail(String name, String link) {
+        String htmlString = """
+                <h3>Hi %1$s</h3>
+                <p>You have requested to reset your password. Please click on the below link to reset your password.</p>
+                <a href="%2$s">%2$s</a>
+                <p>If you have not requested for the password reset, please ignore.</p>
+                """;
+        return String.format(htmlString, name, link);
     }
 }

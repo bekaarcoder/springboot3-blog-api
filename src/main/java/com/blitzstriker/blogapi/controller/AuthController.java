@@ -1,19 +1,14 @@
 package com.blitzstriker.blogapi.controller;
 
 import com.blitzstriker.blogapi.entity.ResetToken;
-import com.blitzstriker.blogapi.payload.ForgotPasswordRequest;
-import com.blitzstriker.blogapi.payload.JwtAuthResponse;
-import com.blitzstriker.blogapi.payload.LoginRequest;
-import com.blitzstriker.blogapi.payload.RegisterRequest;
+import com.blitzstriker.blogapi.payload.*;
 import com.blitzstriker.blogapi.service.AuthService;
+import com.blitzstriker.blogapi.service.ResetTokenService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -37,5 +32,11 @@ public class AuthController {
     @PostMapping("/forgetpassword")
     public ResponseEntity<ResetToken> forgetPassword(@RequestBody ForgotPasswordRequest request) {
         return new ResponseEntity<>(authService.sendResetToken(request), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/resetpassword/confirm")
+    public ResponseEntity<String> resetPassword(@RequestParam("token") String token, @Valid @RequestBody PasswordRequest request) {
+        authService.resetPassword(request, token);
+        return new ResponseEntity<>("Password reset successful", HttpStatus.OK);
     }
 }
